@@ -1,3 +1,43 @@
+import sys
+import pkg_resources
+
+def check_packages():
+    """Check if required packages are installed and print installation instructions if missing."""
+    required_packages = {
+        'yfinance': '0.2.48',
+        'pandas': '1.3.0',
+        'numpy': '1.16.5',
+        'matplotlib': '3.0.0',
+        'seaborn': '0.11.0',
+        'lxml': '4.9.1'
+    }
+    print("Checking required packages...")
+    try:
+        pkg_resources.require("setuptools>=42")
+    except pkg_resources.VersionConflict:
+        print("Please update setuptools to the latest version.")
+        sys.exit(1)
+    missing_packages = []
+    
+    for package, version in required_packages.items():
+        try:
+            pkg_resources.require(f"{package}>={version}")
+        except pkg_resources.VersionConflict:
+            missing_packages.append(f"{package}>={version} (update required)")
+        except pkg_resources.DistributionNotFound:
+            missing_packages.append(f"{package}>={version}")
+    
+    if missing_packages:
+        print("\nMissing required packages. Please install:")
+        print("\nRun this command in your terminal:")
+        print("\npip install " + " ".join(missing_packages))
+        print("\nOr run:")
+        print("pip install -r requirements.txt")
+        sys.exit(1)
+
+# Run package check before imports
+check_packages()
+
 import yfinance as yf
 import pandas as pd
 import numpy as np
@@ -9,6 +49,8 @@ import logging
 from pathlib import Path
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+
 
 # Set up logging
 logging.basicConfig(
@@ -138,7 +180,7 @@ def prepare_dataset(stock_universe, max_workers=10, batch_size=50):
         batch = stock_universe[i:i + batch_size]
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_stock = {
-                executor.submit(process_stock_data, stock, cache): stock 
+                executor.submit(process_stock_data, stock, cache): stock
                 for stock in batch
             }
 
